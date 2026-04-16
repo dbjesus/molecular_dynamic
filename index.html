@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulação de Partículas</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a1a;
+      --muted: #555;
+      --accent: #1a3a6b;
+      --accent-light: #2e5caa;
+      --border: #d0d0d0;
+      --nav-width: 220px;
+      --mono: 'JetBrains Mono', monospace;
+      --serif: 'EB Garamond', Georgia, serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.75;
+    }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    nav {
+      width: var(--nav-width);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      border-right: 1px solid var(--border);
+      padding: 2.5rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      background: #fafafa;
+    }
+
+    nav .nav-title {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav a {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.35rem 0.5rem;
+      border-radius: 3px;
+      transition: color 0.2s, background 0.2s;
+      letter-spacing: 0.03em;
+    }
+
+    nav a:hover {
+      color: var(--accent);
+      background: #eef2f9;
+    }
+
+    nav a.active {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    nav .nav-spacer {
+      flex: 1;
+    }
+
+    nav .nav-footer {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: #aaa;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Main content ── */
+    main {
+      margin-left: var(--nav-width);
+      max-width: 760px;
+      padding: 4rem 3rem 6rem;
+      width: 100%;
+    }
+
+    /* ── Typography ── */
+    .doc-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 2.1rem;
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 2.5rem 0 0.75rem;
+      letter-spacing: -0.01em;
+    }
+
+    p {
+      margin-bottom: 1.25rem;
+      color: var(--text);
+    }
+
+    a {
+      color: var(--accent-light);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: var(--accent);
+    }
+
+    /* ── Figure / Simulation ── */
+    .figure-block {
+      margin: 2.5rem 0;
+      border: 1px solid var(--border);
+    }
+
+    .figure-block iframe {
+      display: block;
+      width: 100%;
+      height: 480px;
+      border: none;
+    }
+
+    .figure-caption {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+    }
+
+    .figure-caption .fig-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .figure-caption p {
+      font-size: 0.85rem;
+      font-style: italic;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* ── Divider ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+
+    /* ── References ── */
+    .references {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .references li {
+      margin-bottom: 0.5rem;
+      list-style: none;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+
+    .references li::before {
+      content: "[" counter(ref) "]";
+      counter-increment: ref;
+      position: absolute;
+      left: 0;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      top: 0.15rem;
+    }
+
+    .references {
+      counter-reset: ref;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar navigation -->
+  <nav>
+    <div class="nav-title">Navegação</div>
+    <a href="#introducao" class="active">Introdução</a>
+    <a href="#modelo">Modelo</a>
+    <a href="#simulacao">Simulação</a>
+    <a href="#conclusao">Conclusão</a>
+    <div class="nav-spacer"></div>
+    <a href="https://dbjesus.github.io/Portifolio/" target="_blank">← Portfólio</a>
+    <div class="nav-footer" style="margin-top:0.75rem;">D. B. Jesus · 2025</div>
+  </nav>
+
+  <!-- Main content -->
+  <main>
+    <div class="doc-label">Física Computacional · Dinâmica Molecular</div>
+
+    <h1>Dinâmica de Partículas Livres</h1>
+    <p class="subtitle">Simulação numérica de um sistema sem potenciais de interação</p>
+
+    <h2 id="introducao">Introdução</h2>
+    <p>
+      Este documento apresenta uma simulação numérica da dinâmica de partículas
+      pontuais em um volume tridimensional. O sistema considerado é completamente
+      livre de interações: não há potenciais de par, forças externas ou condições
+      de contorno além das paredes da caixa de simulação.
+    </p>
+    <p>
+      O objetivo é estabelecer uma base de referência para sistemas mais complexos,
+      nos quais potenciais de Lennard-Jones, coulombianos ou de curto alcance serão
+      progressivamente introduzidos. Para mais trabalhos, visite a
+      <a href="https://dbjesus.github.io/Portifolio/" target="_blank">página de projetos</a>.
+    </p>
+
+    <h2 id="modelo">Modelo</h2>
+    <p>
+      Cada partícula <em>i</em> possui posição <strong>r</strong><sub>i</sub> e
+      velocidade <strong>v</strong><sub>i</sub> inicializadas aleatoriamente dentro
+      da caixa de dimensões <em>L</em>. A evolução temporal segue a integração de
+      Euler de primeira ordem:
+    </p>
+    <p style="font-family: var(--mono); font-size: 0.85rem; background: #f5f5f5; padding: 0.75rem 1rem; border-left: 3px solid var(--accent); margin: 1.25rem 0;">
+      r<sub>i</sub>(t + Δt) = r<sub>i</sub>(t) + v<sub>i</sub>(t) · Δt
+    </p>
+    <p>
+      Na ausência de forças, as velocidades permanecem constantes ao longo de toda
+      a trajetória, de modo que cada partícula descreve uma linha reta até colidir
+      elasticamente com uma das paredes da caixa.
+    </p>
+
+    <h2 id="simulacao">Simulação</h2>
+
+    <div class="figure-block">
+      <iframe src="animacao_particulas.html" title="Simulação de partículas livres"></iframe>
+      <div class="figure-caption">
+        <span class="fig-label">Figura 1</span>
+        <p>
+          Exemplo de dinâmica de partículas livres. Ausência de potenciais de
+          interação ou quaisquer forças.
+        </p>
+      </div>
+    </div>
+
+    <p>
+      A animação acima exibe a evolução de <em>N</em> partículas ao longo de 100
+      passos de tempo com intervalo Δt fixo. As trajetórias são balísticas e
+      refletem a conservação exata do momento linear de cada partícula na ausência
+      de interações.
+    </p>
+
+    <h2 id="conclusao">Conclusão</h2>
+    <p>
+      O sistema de partículas livres serve como ponto de partida natural para
+      estudos de dinâmica molecular. A ausência de interações torna a solução
+      analiticamente exata, permitindo validar os integradores numéricos antes
+      de introduzir potenciais de interação mais complexos.
+    </p>
+
+    <hr/>
+
+    <div class="references">
+      <h2 style="margin-top:0; margin-bottom:1rem;">Referências</h2>
+      <ul>
+        <li>Frenkel, D. &amp; Smit, B. <em>Understanding Molecular Simulation</em>. Academic Press, 2002.</li>
+        <li>Allen, M. P. &amp; Tildesley, D. J. <em>Computer Simulation of Liquids</em>. Oxford University Press, 2017.</li>
+        <li>Haile, J. M. <em>Molecular Dynamics Simulation</em>. Wiley, 1992.</li>
+      </ul>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
